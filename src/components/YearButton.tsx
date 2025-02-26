@@ -1,19 +1,22 @@
-import React from 'react';
+import React from "react";
 
 interface YearButtonProps {
-    year: number;
-    onClick: (year: number) => void;
+    year: number | string;
+    onClick: (year: number | string) => void;
     loading: boolean;
+    isSelected: boolean;
 }
 
-const YearButton: React.FC<YearButtonProps> = ({ year, onClick, loading }) => {
+const YearButton: React.FC<YearButtonProps> = ({ year, onClick, loading, isSelected }) => {
     return (
         <button
             onClick={() => onClick(year)}
             disabled={loading}
-            className={`px-4 py-2 rounded-md text-white ${
-                loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-            } font-semibold transition`}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+                isSelected 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+            }`}
         >
             {year}
         </button>

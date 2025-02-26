@@ -1,25 +1,95 @@
 import React from 'react';
 import Controller from '../Controller';
-import PieChart from '../components/PieChart.tsx';
-import HorizontalStackedBarChart from '../components/HorizontalStackedBarChart.tsx';
-import LineGraph from '../components/LineGraph.tsx';
+import PieChart from './PieChart';
+import HorizontalStackedBarChart from './HorizontalStackedBarChart';
+import LineGraph from './LineGraph';
 
 interface StatisticsChartsProps {
     controller: Controller;
 }
 
-const StatisticsCharts: React.FC<StatisticsChartsProps> = ({ controller }) => {
+const StatisticsCharts: React.FC<StatisticsChartsProps> = ({controller}) => {
+
+
+    const ChartContainer = ({children}: { children: React.ReactNode }) => (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+            {children}
+        </div>
+    );
+
     return (
-        <>
-            <PieChart title="Platform Percentage" name="Platform" data={controller.getPercentage("platform")} />
-            <PieChart title="Geo Percentage" name="Geo" data={controller.getPercentage("conn_country")} />
-            <HorizontalStackedBarChart title="Offline vs Online" labels={['Offline', 'Online']} data={[controller.getPercentage("offline")['true'], controller.getPercentage("offline")['false']]} />
-            <HorizontalStackedBarChart title="Incognito Mode" labels={['Incognito', 'Not Incognito']} data={[controller.getPercentage("incognito_mode")['true'], controller.getPercentage("incognito_mode")['false']]} />
-            <HorizontalStackedBarChart title="Shuffled vs Not Shuffled" labels={['Shuffled', 'Not Shuffled']} data={[controller.getPercentage("shuffle")['true'], controller.getPercentage("shuffle")['false']]} />
-            <HorizontalStackedBarChart title="Track Completion" labels={['Completed', 'Uncompleted']} data={[controller.getPercentage("reason_end")['trackdone'], controller.getPercentage("reason_end")['other']]} />
-            <LineGraph title="Songs per Day" labels={Object.keys(controller.getSongsPerDay())} data={Object.values(controller.getSongsPerDay()).map(day => day.totalSongs)} />
-            <LineGraph title="Playtime per Day" labels={Object.keys(controller.getSongsPerDay())} data={Object.values(controller.getSongsPerDay()).map(day => day.playtime)} />
-        </>
+        <div className="w-full space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-6">
+                    <ChartContainer>
+                        <PieChart
+                            title="Platform Distribution"
+                            name="Platform"
+                            data={controller.getPercentage("platform")}
+                        />
+                    </ChartContainer>
+                    <ChartContainer>
+                        <PieChart
+                            title="Geographic Distribution"
+                            name="Geo"
+                            data={controller.getPercentage("conn_country")}
+                        />
+                    </ChartContainer>
+                </div>
+
+                <div className="space-y-6">
+                    <ChartContainer>
+                        <HorizontalStackedBarChart
+                            title="Offline vs Online"
+                            labels={['Offline', 'Online']}
+                            data={[
+                                controller.getPercentage("offline")['true'],
+                                controller.getPercentage("offline")['false']
+                            ]}
+                        />
+                    </ChartContainer>
+                    <ChartContainer>
+                        <HorizontalStackedBarChart
+                            title="Track Completion"
+                            labels={['Completed', 'Uncompleted']}
+                            data={[
+                                controller.getPercentage("reason_end")['trackdone'],
+                                controller.getPercentage("reason_end")['other']
+                            ]}
+                        />
+                    </ChartContainer>
+                    <ChartContainer>
+                        <HorizontalStackedBarChart
+                            title="Public vs Private Listening"
+                            labels={['Public   ', 'Private']}
+                            data={[
+                                controller.getPercentage("incognito_mode")['false'],
+                                controller.getPercentage("incognito_mode")['true']
+
+                            ]}
+                        />
+                    </ChartContainer>
+                </div>
+            </div>
+
+            {/* Bottom row - Line Graphs in 2 columns */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ChartContainer>
+                    <LineGraph
+                        title="Songs Played per Day"
+                        labels={Object.keys(controller.getSongsPerDay())}
+                        data={Object.values(controller.getSongsPerDay()).map(day => day.totalSongs)}
+                    />
+                </ChartContainer>
+                <ChartContainer>
+                    <LineGraph
+                        title="Daily Listening Time"
+                        labels={Object.keys(controller.getSongsPerDay())}
+                        data={Object.values(controller.getSongsPerDay()).map(day => day.playtime)}
+                    />
+                </ChartContainer>
+            </div>
+        </div>
     );
 };
 
