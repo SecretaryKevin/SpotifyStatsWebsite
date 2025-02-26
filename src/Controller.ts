@@ -3,13 +3,19 @@ import type { Song } from './Interface/Song';
 export default class Controller {
     public songs: { [key: number]: Song[] } = {};
     private selectedYearSongs: Song[] | null = null;
+    private allSongs: Song[] = [];
 
     public loadData = (data: Song[]): void => {
-        data.filter(song => !song.episode_name).forEach(song => {
+        // Store all songs first
+        this.allSongs = data.filter(song => !song.episode_name);
+
+        // Then organize by year
+        this.allSongs.forEach(song => {
             const year = parseInt(song.ts.split("T")[0].split("-")[0], 10);
             if (!this.songs[year]) this.songs[year] = [];
             this.songs[year].push(song);
         });
+
         const years = Object.keys(this.songs).map(Number);
         this.selectedYearSongs = this.songs[years[years.length - 1]];
     };
@@ -18,18 +24,18 @@ export default class Controller {
         return Object.keys(this.songs).map(Number);
     };
 
-    public getSelectedYear = (): number => {
-        return this.selectedYearSongs ? parseInt(this.selectedYearSongs[0].ts.split("-")[0], 10) : 0;
+    public getSelectedYear = (): number | "All" => {
+        if (!this.selectedYearSongs) return 0;
+        return this.selectedYearSongs === this.allSongs ? "All" :
+            parseInt(this.selectedYearSongs[0].ts.split("-")[0], 10);
     };
 
-    public setSelectedYear = (year: number ): void => {
-        this.selectedYearSongs = this.songs[year];
-        // print all the song years in the selected year
-        this.selectedYearSongs.forEach(song => {
-            console.log(song.ts.split("T")[0].split("-")[0]);
-        });
-
-
+    public setSelectedYear = (year: number | "all"): void => {
+        if (year === "all") {
+            this.selectedYearSongs = this.allSongs;
+        } else {
+            this.selectedYearSongs = this.songs[year];
+        }
     };
 
     public getTotalTimeListened = (): number => {
