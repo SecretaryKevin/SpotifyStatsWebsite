@@ -25,7 +25,7 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({controller}) => {
                         <PieChart
                             title="Platform Distribution"
                             name="Platform"
-                            data={controller.getPercentage("platform")}
+                            data={controller.getPercentageByPlatformCategory("platform")}
                         />
                     </ChartContainer>
                     <ChartContainer>
@@ -71,8 +71,6 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({controller}) => {
                     </ChartContainer>
                 </div>
             </div>
-
-            {/* Bottom row - Line Graphs in 2 columns */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ChartContainer>
                     <LineGraph

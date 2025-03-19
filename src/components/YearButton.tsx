@@ -12,10 +12,10 @@ const YearButton: React.FC<YearButtonProps> = ({ year, onClick, loading, isSelec
         <button
             onClick={() => onClick(year)}
             disabled={loading}
-            className={`px-4 py-2 rounded-lg transition-colors ${
+            className={`px-6 py-3 rounded-lg transition-all transform hover:scale-105 font-medium ${
                 isSelected 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                    ? 'bg-blue-600 text-white shadow-lg' 
+                    : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200'
             }`}
         >
             {year}

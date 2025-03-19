@@ -9,7 +9,7 @@ export default class Controller {
         // Store all songs first
         this.allSongs = data.filter(song => !song.episode_name);
 
-        // Then organize by year
+        // Then organize it by year
         this.allSongs.forEach(song => {
             const year = parseInt(song.ts.split("T")[0].split("-")[0], 10);
             if (!this.songs[year]) this.songs[year] = [];
@@ -19,6 +19,12 @@ export default class Controller {
         const years = Object.keys(this.songs).map(Number);
         this.selectedYearSongs = this.songs[years[years.length - 1]];
     };
+
+    public clearData = (): void => {
+        this.songs = {};
+        this.selectedYearSongs = null;
+        this.allSongs = [];
+    }
 
     public getYears = (): number[] => {
         return Object.keys(this.songs).map(Number);
@@ -30,8 +36,8 @@ export default class Controller {
             parseInt(this.selectedYearSongs[0].ts.split("-")[0], 10);
     };
 
-    public setSelectedYear = (year: number | "all"): void => {
-        if (year === "all") {
+    public setSelectedYear = (year: number | "All"): void => {
+        if (year === "All") {
             this.selectedYearSongs = this.allSongs;
         } else {
             this.selectedYearSongs = this.songs[year];
@@ -40,6 +46,26 @@ export default class Controller {
 
     public getTotalTimeListened = (): number => {
         return this.selectedYearSongs ? parseFloat((this.selectedYearSongs.reduce((total, song) => total + song.ms_played, 0) / 6000).toFixed(2)) : 0;
+    };
+
+    public getTotalNumberOfSongs = (): number => {
+        return this.selectedYearSongs ? this.selectedYearSongs.length : 0;
+    };
+
+    public getTotalNumberOfArtists = (): number => {
+        const artists = new Set<string>();
+        if (this.selectedYearSongs) {
+            this.selectedYearSongs.forEach(song => artists.add(song.master_metadata_album_artist_name));
+        }
+        return artists.size;
+    };
+
+    public getTotalNumberOfAlbums = (): number => {
+        const albums = new Set<string>();
+        if (this.selectedYearSongs) {
+            this.selectedYearSongs.forEach(song => albums.add(song.master_metadata_album_album_name));
+        }
+        return albums.size;
     };
 
     public getPercentage = (key: keyof Song): { [key: string]: number } => {
@@ -143,6 +169,8 @@ export default class Controller {
         return [];
     };
 
+
+
     public getTopFiveAlbums = (): { name: string, times_played: number, percentage_of_total_songs: number, minutes_listened: number, artist: string }[] => {
         const albums: { [key: string]: { count: number, ms_played: number, artist: string } } = {};
         if (this.selectedYearSongs) {
@@ -168,4 +196,62 @@ export default class Controller {
         }
         return [];
     };
+
+    public getPercentageByPlatformCategory = (key: keyof Song): { [key: string]: number } => {
+    // First, count occurrences of each platform
+    const platformCounts: { [key: string]: number } = {};
+
+    if (this.selectedYearSongs) {
+        this.selectedYearSongs.forEach(song => {
+            const platform = song[key] as unknown as string;
+            platformCounts[platform] = (platformCounts[platform] || 0) + 1;
+        });
+
+        // Now categorize and group the platforms
+        const categoryTotals: { [category: string]: number } = {
+            "Windows": 0,
+            "Android": 0,
+            "Mac": 0,
+            "iOS": 0,
+            "Other": 0
+        };
+
+        // Categorize each platform
+        Object.keys(platformCounts).forEach(platform => {
+            const count = platformCounts[platform];
+
+            if (platform.toLowerCase().includes('windows')) {
+                categoryTotals["Windows"] += count;
+            } else if (platform.toLowerCase().includes('android')) {
+                categoryTotals["Android"] += count;
+            } else if (platform.toLowerCase().includes('mac') || platform.toLowerCase().includes('macos')) {
+                categoryTotals["Mac"] += count;
+            } else if (platform.toLowerCase().includes('ios') || platform.toLowerCase().includes('iphone') || platform.toLowerCase().includes('ipad')) {
+                categoryTotals["iOS"] += count;
+            } else {
+                // Categorize web_player, partner_spotify, etc. as "Other"
+                categoryTotals["Other"] += count;
+            }
+        });
+
+        // Convert counts to percentages
+        const totalSongs = this.selectedYearSongs.length;
+        Object.keys(categoryTotals).forEach(category => {
+            if (categoryTotals[category] > 0) {
+                categoryTotals[category] = parseFloat(((categoryTotals[category] / totalSongs) * 100).toFixed(2));
+            }
+        });
+
+        // Remove categories with 0 count
+        Object.keys(categoryTotals).forEach(category => {
+            if (categoryTotals[category] === 0) {
+                delete categoryTotals[category];
+            }
+        });
+
+        return categoryTotals;
+    }
+
+    return {};
+};
 }

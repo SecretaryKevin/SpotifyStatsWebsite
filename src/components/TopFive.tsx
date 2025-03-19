@@ -19,26 +19,36 @@ const TopFive: React.FC<TopFiveProps> = ({ title, items }) => {
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">{title}</h3>
-            <div className="space-y-3">
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <h3 className="text-2xl font-bold text-gray-800 mb-6">{title}</h3>
+            <div className="space-y-4">
                 {items.map((item, index) => (
-                    <div key={item.name} className="bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors">
-                        <h4 className="font-medium text-blue-900 mb-1">#{index + 1} Most Played {title.slice(4)}</h4>
-                        <p className="text-lg font-semibold text-gray-900 mb-1">{item.name}</p>
-                        {item.artist && <p className="text-sm text-gray-600 mb-2">{item.artist}</p>}
-                        <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div key={item.name} 
+                         className="bg-gradient-to-r from-blue-50 to-blue-100 p-5 rounded-xl 
+                                  hover:shadow-md transition-all duration-300">
+                        <div className="flex items-center gap-3 mb-2">
+                            <span className="text-2xl font-bold text-blue-600">#{index + 1}</span>
                             <div>
-                                <p className="text-gray-600">Plays</p>
-                                <p className="font-medium text-gray-900">{item.times_played}</p>
+                                <h4 className="text-lg font-semibold text-gray-900">{item.name}</h4>
+                                {item.artist && <p className="text-gray-600">{item.artist}</p>}
                             </div>
-                            <div>
-                                <p className="text-gray-600">Duration</p>
-                                <p className="font-medium text-gray-900">{formatPlaytime(item.minutes_listened)}</p>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 mt-4">
+                            <div className="text-center p-2 bg-white rounded-lg shadow-sm">
+                                <p className="text-sm text-gray-500">Plays</p>
+                                <p className="text-lg font-semibold text-gray-900">{item.times_played}</p>
                             </div>
-                            <div>
-                                <p className="text-gray-600">% of Total</p>
-                                <p className="font-medium text-gray-900">{item.percentage_of_total_songs}%</p>
+                            <div className="text-center p-2 bg-white rounded-lg shadow-sm">
+                                <p className="text-sm text-gray-500">Duration</p>
+                                <p className="text-lg font-semibold text-gray-900">
+                                    {formatPlaytime(item.minutes_listened)}
+                                </p>
+                            </div>
+                            <div className="text-center p-2 bg-white rounded-lg shadow-sm">
+                                <p className="text-sm text-gray-500">% of Total</p>
+                                <p className="text-lg font-semibold text-gray-900">
+                                    {item.percentage_of_total_songs}%
+                                </p>
                             </div>
                         </div>
                     </div>
