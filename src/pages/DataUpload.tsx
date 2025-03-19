@@ -1,68 +1,115 @@
+// Updated DataUpload.tsx
 import React, { useState } from 'react';
-import Controller from '../Controller.ts';
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Header.tsx";
+import UploadInstructions from "../components/UploadInstructions";
+import TutorialFrame from "../components/TutorialFrame";
+import FileUploader from "../components/FileUploader";
+import Controller from '../Controller.ts';
+import { validateSpotifyData } from '../utils/dataValidator';
 
 interface DataUploadPageProps {
     controller: Controller;
 }
 
+interface FileUploadProgress {
+    name: string;
+    progress: number;
+}
+
 const DataUpload: React.FC<DataUploadPageProps> = ({ controller }) => {
     const [loading, setLoading] = useState(false);
     const [files, setFiles] = useState<FileList | null>(null);
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setFiles(event.target.files);
-    };
-
+    const [uploadProgress, setUploadProgress] = useState<FileUploadProgress[]>([]);
+    const [validationError, setValidationError] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    const handleUploadClick = async () => {
-        if (files) {
-            setLoading(true);
-            const data = [];
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const text = await file.text();
-                const json = JSON.parse(text);
-                data.push(...json);
-            }
-            controller.loadData(data);
-            setLoading(false);
-
-            navigate("/statistics");
-        }
+    const handleFilesSelected = (selectedFiles: FileList) => {
+        setFiles(selectedFiles);
+        setValidationError(null);
+        const initialProgress = Array.from(selectedFiles).map(file => ({
+            name: file.name,
+            progress: 0,
+        }));
+        setUploadProgress(initialProgress);
     };
 
+    const handleUpload = async () => {
+    if (!files) return;
+
+    setLoading(true);
+    setValidationError(null);
+    const data = [];
+
+    try {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const text = await file.text();
+            let json;
+
+            // Parse JSON
+            try {
+                json = JSON.parse(text);
+            } catch (error) {
+                throw new Error(`There is an issue with the uploaded files. Please make sure you're only uploading the original JSON files from your Spotify data download (files should be named like 'Streaming_History_Audio_*.json').`);
+            }
+
+            // Validate against Song interface - pass the filename as well
+            const validationResult = validateSpotifyData(json, file.name);
+            if (!validationResult.valid) {
+                throw new Error(`${validationResult.sampleErrors.join(' ')}`);
+            }
+
+            data.push(...json);
+
+            // Update progress
+            setUploadProgress(prevProgress => {
+                const newProgress = [...prevProgress];
+                newProgress[i].progress = 100;
+                return newProgress;
+            });
+        }
+
+        controller.loadData(data);
+        setLoading(false);
+        navigate("/statistics");
+    } catch (error) {
+        setLoading(false);
+        setValidationError(error instanceof Error ? error.message : "There is an issue with the uploaded files. Please make sure you're only uploading the original Spotify data files.");
+    }
+};
+
+
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="h-screen bg-gray-50 flex flex-col">
             <Header />
-            <div className="container mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-                <h2 className="text-2xl font-semibold text-gray-700 mb-4">Data Upload Page</h2>
-                <div className="flex flex-col items-center space-y-4">
-                    <input
-                        type="file"
-                        accept="application/json"
-                        multiple
-                        onChange={handleFileChange}
-                        className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    />
-                    <button
-                        onClick={handleUploadClick}
-                        disabled={!files || loading}
-                        className={`px-6 py-2 rounded-md text-white ${
-                            !files || loading
-                                ? "bg-gray-400 cursor-not-allowed"
-                                : "bg-blue-600 hover:bg-blue-700"
-                        } font-semibold transition`}
-                    >
-                        {loading ? 'Uploading...' : 'Upload Files'}
-                    </button>
-                    {loading && (
-                        <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                            <div className="bg-blue-600 h-full animate-pulse"></div>
+            <div className="flex-1 container mx-auto py-2 px-4">
+                <div className="bg-white rounded-lg shadow overflow-hidden h-full">
+                    <div className="flex h-full">
+                        {/* Left Panel */}
+                        <div className="w-1/2 p-4 relative">
+                            <UploadInstructions />
+                            <div className="relative h-[calc(100%-7rem)]">
+                                <TutorialFrame/>
+                            </div>
                         </div>
-                    )}
+                        {/* Right Panel */}
+                        <div className="w-1/2 p-4 bg-gradient-to-br from-green-50 to-green-100 flex flex-col">
+                            {validationError && (
+                                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                                    <strong className="font-bold">Error: </strong>
+                                    <span className="block sm:inline">{validationError}</span>
+                                </div>
+                            )}
+                            <FileUploader
+                                files={files}
+                                loading={loading}
+                                uploadProgress={uploadProgress}
+                                onFilesSelected={handleFilesSelected}
+                                onUpload={handleUpload}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
