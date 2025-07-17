@@ -1,6 +1,3 @@
-/**
- * Validates if the data is valid JSON and has the correct filename pattern
- */
 export const validateSpotifyData = (
   data: unknown,
   fileName?: string
@@ -23,6 +20,3 @@ export const validateSpotifyData = (
     sampleErrors: errors
   };
 };
-
-// Function not used anymore but kept for backward compatibility
-export const validateSong = () => ({ valid: true });
