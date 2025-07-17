@@ -13,7 +13,15 @@ interface LineGraphProps {
 }
 
 const LineGraph: React.FC<LineGraphProps> = ({ title, labels, data, colors }) => {
-    const selectedColors = colors && colors.length > 0 ? colors : colorSet;
+    const colorCount = 4; // or set dynamically as needed
+    const getUniqueColors = colorSet.getUniqueColors;
+    const selectedColors: string[] = colors && colors.length > 0
+        ? colors
+        : getUniqueColors
+            ? (colorCount <= 32 ? getUniqueColors(colorCount) : getUniqueColors(32))
+            : Array.isArray(colorSet)
+                ? colorSet
+                : [];
 
     const chartData = {
         labels: labels,
